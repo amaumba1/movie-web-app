@@ -5,18 +5,34 @@ class Movies extends Component {
 
   state = {
     movies: [],
-    isLoaded: false
+    isLoaded: false,
+    error: null
   };
 
     componentDidMount() {
       fetch('http://localhost:4000/v1/movies')
-      .then(res => res.json())
-      .then(data => this.setState({ movies: data.movies, isLoaded: true }));
-    }
+      //.then(res => res.json())
+      .then(res => {
+        console.log("status code is", res.status);
+        if (res.status !== 200) {
+          let err = Error
+          err.message = "Invalid status code: " + res.status;
+          this.setState({ error: err });
+        }
+        return res.json();
+      })
+      .then(data => this.setState({ movies: data.movies, isLoaded: true },
+        (error) => {
+          this.setState({ isLoaded: true, error: error });
+        }))
+      }
+    
 
     render() {
-      const { movies, isLoaded } = this.state;
-      if (!isLoaded) {
+      const { movies, isLoaded, error } = this.state;
+      if (error) {
+        return <div>Error: {error.message}</div>;
+      } else if (!isLoaded) {
         return <div>Loading...</div>;
       } else {
         return (
